@@ -3,7 +3,7 @@ package moe.shizuku.manager
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import com.google.android.material.navigation.NavigationBarView
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import moe.shizuku.manager.module.ModuleFragment
 import moe.shizuku.manager.nav.HomeFragment
 import moe.shizuku.manager.nav.PermissionFragment
@@ -11,7 +11,7 @@ import moe.shizuku.manager.nav.SettingsFragment
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var bottomNav: NavigationBarView
+    private lateinit var bottomNav: BottomNavigationView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
