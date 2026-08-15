@@ -53,8 +53,8 @@ public class ShizukuShellLoader {
         Bundle data = new Bundle();
         data.putBinder("binder", receiverBinder);
 
-        Intent intent = new Intent("rikka.shizuku.intent.action.REQUEST_BINDER")
-                .setPackage("moe.shizuku.privileged.api")
+        Intent intent = new Intent("com.chumian.shizlite.intent.action.REQUEST_BINDER")
+                .setPackage("com.chumian.shizlite")
                 .addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES)
                 .putExtra("data", data);
 
@@ -84,7 +84,7 @@ public class ShizukuShellLoader {
             System.err.flush();
 
             Intent activityIntent = Intent.createChooser(
-                    new Intent("rikka.shizuku.intent.action.REQUEST_BINDER")
+                    new Intent("com.chumian.shizlite.intent.action.REQUEST_BINDER")
                             .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                             .addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)

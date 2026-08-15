@@ -21,7 +21,7 @@ public class ServiceStarter {
 
     private static final String TAG = "ShizukuServiceStarter";
 
-    private static final String EXTRA_BINDER = "moe.shizuku.privileged.api.intent.extra.BINDER";
+    private static final String EXTRA_BINDER = "com.chumian.shizlite.intent.extra.BINDER";
 
     public static final String DEBUG_ARGS;
 
@@ -92,7 +92,7 @@ public class ServiceStarter {
     }
 
     private static boolean sendBinder(IBinder binder, String token, boolean retry) {
-        String packageName = "moe.shizuku.privileged.api";
+        String packageName = "com.chumian.shizlite";
         String name = packageName + ".shizuku";
         int userId = 0;
         IContentProvider provider = null;

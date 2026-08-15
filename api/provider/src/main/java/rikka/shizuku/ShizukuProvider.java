@@ -72,11 +72,11 @@ public class ShizukuProvider extends ContentProvider {
 
     public static final String ACTION_BINDER_RECEIVED = "moe.shizuku.api.action.BINDER_RECEIVED";
 
-    private static final String EXTRA_BINDER = "moe.shizuku.privileged.api.intent.extra.BINDER";
+    private static final String EXTRA_BINDER = "com.chumian.shizlite.intent.extra.BINDER";
 
-    public static final String PERMISSION = "moe.shizuku.manager.permission.API_V23";
+    public static final String PERMISSION = "com.chumian.shizlite.permission.API_V23";
 
-    public static final String MANAGER_APPLICATION_ID = "moe.shizuku.privileged.api";
+    public static final String MANAGER_APPLICATION_ID = "com.chumian.shizlite";
 
     private static boolean enableMultiProcess = false;
 
