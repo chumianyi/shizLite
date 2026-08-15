@@ -25,7 +25,7 @@ class PermissionFragment : Fragment() {
         }.also { view.addView(it) }
 
         TextView(requireContext()).apply {
-            text = "管理已请求 Shizuku 权限的应用和终端授权"
+            text = "管理已请求 shizLite 权限的应用和终端授权"
             textSize = 14f
             setPadding(0, 0, 0, 32)
         }.also { view.addView(it) }
