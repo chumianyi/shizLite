@@ -1,6 +1,7 @@
 package com.chumian.shizlite.module
 
 import com.chumian.shizlite.core.ShellExecutor
+import com.chumian.shizlite.core.ShellResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 

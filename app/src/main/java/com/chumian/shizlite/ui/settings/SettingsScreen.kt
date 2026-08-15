@@ -15,6 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.chumian.shizlite.ShizLiteApp
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen() {
     val context = LocalContext.current

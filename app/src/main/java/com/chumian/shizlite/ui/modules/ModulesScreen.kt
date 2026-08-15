@@ -16,6 +16,7 @@ import com.chumian.shizlite.module.Module
 import com.chumian.shizlite.module.ModuleManager
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ModulesScreen(navController: NavController) {
     var modules by remember { mutableStateOf(ModuleManager.getInstalledModules()) }

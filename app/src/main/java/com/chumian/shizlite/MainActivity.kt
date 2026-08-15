@@ -32,6 +32,7 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector)
 val screens = listOf(Screen.Home, Screen.Modules, Screen.Permissions, Screen.Settings)
 
 class MainActivity : ComponentActivity() {
+    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {

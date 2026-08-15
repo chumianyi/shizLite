@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import com.chumian.shizlite.ShizLiteApp
 import com.chumian.shizlite.core.ActivationManager
 import com.chumian.shizlite.core.ShellExecutor
+import com.chumian.shizlite.core.ShellResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray

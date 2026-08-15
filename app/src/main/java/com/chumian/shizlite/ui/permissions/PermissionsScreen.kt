@@ -136,7 +136,7 @@ fun PermissionsScreen() {
                                 Text(pkg, style = MaterialTheme.typography.bodySmall)
                             }
                         }
-                        HorizontalDivider()
+                        Divider()
                     }
                 }
             },

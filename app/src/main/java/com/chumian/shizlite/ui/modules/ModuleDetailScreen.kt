@@ -12,6 +12,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.chumian.shizlite.module.Module
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ModuleDetailScreen(
     module: Module,

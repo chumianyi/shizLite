@@ -94,27 +94,27 @@ fun HomeScreen(navController: NavController) {
         Text("快捷功能", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
 
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            QuickActionCard(Icons.Default.CleaningServices, "清理缓存", "pm trim-caches") {
+            QuickActionCard(Icons.Default.CleaningServices, "清理缓存", "pm trim-caches", modifier = Modifier.weight(1f)) {
                 scope.launch {
                     val r = ShellExecutor.execute("pm trim-caches 999999999999")
                     statusText = "退出码: ${r.exitCode}\n${r.stdout.take(200)}"
                 }
             }
-            QuickActionCard(Icons.Default.Speed, "动画缩放", "0.5x") {
+            QuickActionCard(Icons.Default.Speed, "动画缩放", "0.5x", modifier = Modifier.weight(1f)) {
                 scope.launch {
-                    ShellExecutor.setAnimationScale(0.5f)
+                    ShellExecutor.execute("settings put global window_animation_scale 0.5 && settings put global transition_animation_scale 0.5 && settings put global animator_duration_scale 0.5")
                     statusText = "动画缩放已设为 0.5x"
                 }
             }
         }
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            QuickActionCard(Icons.Default.Info, "系统属性", "getprop") {
+            QuickActionCard(Icons.Default.Info, "系统属性", "getprop", modifier = Modifier.weight(1f)) {
                 scope.launch {
                     val r = ShellExecutor.execute("getprop ro.build.version.release")
                     statusText = "Android版本: ${r.stdout.trim()}"
                 }
             }
-            QuickActionCard(Icons.Default.Extension, "模块管理", "查看模块") {
+            QuickActionCard(Icons.Default.Extension, "模块管理", "查看模块", modifier = Modifier.weight(1f)) {
                 navController.navigate("modules")
             }
         }
@@ -168,9 +168,9 @@ fun HomeScreen(navController: NavController) {
 }
 
 @Composable
-fun QuickActionCard(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, subtitle: String, onClick: () -> Unit) {
+fun QuickActionCard(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, subtitle: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Card(
-        modifier = Modifier.weight(1f),
+        modifier = modifier,
         onClick = onClick
     ) {
         Column(
