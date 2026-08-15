@@ -76,6 +76,7 @@ fun ModulesScreen(navController: NavController) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ModuleCard(module: Module, onClick: () -> Unit) {
     Card(

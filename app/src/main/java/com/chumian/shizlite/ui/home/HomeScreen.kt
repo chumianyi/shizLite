@@ -168,7 +168,9 @@ fun HomeScreen(navController: NavController) {
 }
 
 @Composable
-fun QuickActionCard(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, subtitle: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun QuickActionCard(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, subtitle: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
     Card(
         modifier = modifier,
         onClick = onClick
