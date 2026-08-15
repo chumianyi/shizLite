@@ -149,7 +149,12 @@ public class ShizukuService extends Service<ShizukuUserServiceManager, ShizukuCl
 
     private int checkCallingPermission() {
         try {
-            return ActivityManagerApis.checkPermission(ServerConstants.PERMISSION,
+            int result = ActivityManagerApis.checkPermission(ServerConstants.PERMISSION,
+                    Binder.getCallingPid(),
+                    Binder.getCallingUid());
+            if (result == PackageManager.PERMISSION_GRANTED) return result;
+            // 兼容原版 Shizuku permission
+            return ActivityManagerApis.checkPermission("moe.shizuku.manager.permission.API_V23",
                     Binder.getCallingPid(),
                     Binder.getCallingUid());
         } catch (Throwable tr) {

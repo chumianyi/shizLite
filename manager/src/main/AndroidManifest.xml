@@ -38,6 +38,16 @@
     <uses-permission
         android:name="com.chumian.shizlite.permission.API_V23"
         tools:node="remove" />
+    <!-- 原版 Shizuku 兼容：同时声明原版 permission，使已适配原版的应用可连接 -->
+    <permission
+        android:name="moe.shizuku.manager.permission.API_V23"
+        android:description="@string/permission_description"
+        android:icon="@drawable/ic_system_icon"
+        android:label="@string/permission_label"
+        android:protectionLevel="dangerous" />
+    <permission
+        android:name="moe.shizuku.manager.permission.MANAGER"
+        android:protectionLevel="signature" />
 
     <permission
         android:name="${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
@@ -124,6 +134,7 @@
             android:theme="@style/GrantPermissions">
             <intent-filter>
                 <action android:name="com.chumian.shizlite.intent.action.REQUEST_BINDER" />
+                <action android:name="rikka.shizuku.intent.action.REQUEST_BINDER" />
 
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
@@ -168,6 +179,7 @@
             tools:ignore="ExportedReceiver">
             <intent-filter>
                 <action android:name="com.chumian.shizlite.intent.action.REQUEST_BINDER" />
+                <action android:name="rikka.shizuku.intent.action.REQUEST_BINDER" />
             </intent-filter>
         </receiver>
 

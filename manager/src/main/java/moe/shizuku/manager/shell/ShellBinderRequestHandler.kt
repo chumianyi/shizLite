@@ -10,7 +10,8 @@ import rikka.shizuku.Shizuku
 object ShellBinderRequestHandler {
 
     fun handleRequest(context: Context, intent: Intent): Boolean {
-        if (intent.action != "com.chumian.shizlite.intent.action.REQUEST_BINDER") {
+        if (intent.action != "com.chumian.shizlite.intent.action.REQUEST_BINDER" &&
+            intent.action != "rikka.shizuku.intent.action.REQUEST_BINDER") {
             return false
         }
 

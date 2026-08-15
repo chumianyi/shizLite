@@ -169,3 +169,7 @@ With %1$s, in any terminal app, you can connect to and interact with the shell r
     <string name="dialog_requesting_legacy_button_open_shizuku">Open Shizuku</string>
 
 </resources>
+    <string name="nav_home" translatable="false">首页</string>
+    <string name="nav_modules" translatable="false">模块</string>
+    <string name="nav_permission" translatable="false">授权</string>
+    <string name="nav_settings" translatable="false">设置</string>

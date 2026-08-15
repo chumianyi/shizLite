@@ -8,7 +8,8 @@ import moe.shizuku.manager.shell.ShellBinderRequestHandler
 class ShizukuReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
-        if ("com.chumian.shizlite.intent.action.REQUEST_BINDER" == intent.action) {
+        if ("com.chumian.shizlite.intent.action.REQUEST_BINDER" == intent.action ||
+            "rikka.shizuku.intent.action.REQUEST_BINDER" == intent.action) {
             ShellBinderRequestHandler.handleRequest(context, intent)
         }
     }

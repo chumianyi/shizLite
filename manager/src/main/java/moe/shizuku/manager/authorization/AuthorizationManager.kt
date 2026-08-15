@@ -17,6 +17,8 @@ object AuthorizationManager {
     private const val FLAG_ALLOWED = 1 shl 1
     private const val FLAG_DENIED = 1 shl 2
     private const val MASK_PERMISSION = FLAG_ALLOWED or FLAG_DENIED
+    // 兼容原版 Shizuku 的 permission
+    private const val LEGACY_PERMISSION = "moe.shizuku.manager.permission.API_V23"
 
     private fun getApplications(userId: Int): List<PackageInfo> {
         val data = Parcel.obtain()
@@ -52,7 +54,8 @@ object AuthorizationManager {
             for (pi in allPackages) {
                 if (BuildConfig.APPLICATION_ID == pi.packageName) continue
                 if (pi.applicationInfo?.metaData?.getBoolean("moe.shizuku.client.V3_SUPPORT") != true) continue
-                if (pi.requestedPermissions?.contains(Manifest.permission.API_V23) != true) continue
+                if (pi.requestedPermissions?.contains(Manifest.permission.API_V23) != true &&
+                    pi.requestedPermissions?.contains(LEGACY_PERMISSION) != true) continue
 
                 packages.add(pi)
             }
@@ -64,7 +67,8 @@ object AuthorizationManager {
 
     fun granted(packageName: String, uid: Int): Boolean {
         return if (Shizuku.isPreV11()) {
-            ShizukuSystemApis.checkPermission(Manifest.permission.API_V23, packageName, uid / 100000) == PackageManager.PERMISSION_GRANTED
+            ShizukuSystemApis.checkPermission(Manifest.permission.API_V23, packageName, uid / 100000) == PackageManager.PERMISSION_GRANTED ||
+                ShizukuSystemApis.checkPermission(LEGACY_PERMISSION, packageName, uid / 100000) == PackageManager.PERMISSION_GRANTED
         } else {
             (Shizuku.getFlagsForUid(uid, MASK_PERMISSION) and FLAG_ALLOWED) == FLAG_ALLOWED
         }
@@ -73,6 +77,7 @@ object AuthorizationManager {
     fun grant(packageName: String, uid: Int) {
         if (Shizuku.isPreV11()) {
             ShizukuSystemApis.grantRuntimePermission(packageName, Manifest.permission.API_V23, uid / 100000)
+            ShizukuSystemApis.grantRuntimePermission(packageName, LEGACY_PERMISSION, uid / 100000)
         } else {
             Shizuku.updateFlagsForUid(uid, MASK_PERMISSION, FLAG_ALLOWED)
         }
@@ -81,6 +86,7 @@ object AuthorizationManager {
     fun revoke(packageName: String, uid: Int) {
         if (Shizuku.isPreV11()) {
             ShizukuSystemApis.revokeRuntimePermission(packageName, Manifest.permission.API_V23, uid / 100000)
+            ShizukuSystemApis.revokeRuntimePermission(packageName, LEGACY_PERMISSION, uid / 100000)
         } else {
             Shizuku.updateFlagsForUid(uid, MASK_PERMISSION, 0)
         }
