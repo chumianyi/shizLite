@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import moe.shizuku.manager.application
 import org.json.JSONArray
+import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
 import java.util.zip.ZipFile
