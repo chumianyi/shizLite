@@ -209,6 +209,17 @@ class HomeFragment : Fragment() {
 
     private fun startPairing() {
         try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                if (androidx.core.content.ContextCompat.checkSelfPermission(
+                        requireContext(), android.Manifest.permission.POST_NOTIFICATIONS
+                    ) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                    requestPermissions(
+                        arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),
+                        2001
+                    )
+                    return
+                }
+            }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 AdbDialogFragment().show(parentFragmentManager, "adb_pair")
             } else {
@@ -217,6 +228,33 @@ class HomeFragment : Fragment() {
         } catch (e: Exception) {
             e.printStackTrace()
             showError("配对失败：${e.message}")
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int, permissions: Array<out String>, grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == 2001) {
+            if (grantResults.isNotEmpty() && grantResults[0] == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                startPairing()
+            } else {
+                MaterialAlertDialogBuilder(requireContext())
+                    .setTitle("需要通知权限")
+                    .setMessage("无线调试配对需要通知权限才能接收配对码通知，请在设置中授予通知权限后重试。")
+                    .setPositiveButton("去设置") { _, _ ->
+                        try {
+                            val intent = android.content.Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                                putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, requireContext().packageName)
+                            }
+                            startActivity(intent)
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    }
+                    .setNegativeButton("取消", null)
+                    .show()
+            }
         }
     }
 
