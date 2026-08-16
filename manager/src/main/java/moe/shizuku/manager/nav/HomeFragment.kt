@@ -1,6 +1,8 @@
 package moe.shizuku.manager.nav
 
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.Bundle
 import android.view.Gravity
@@ -17,6 +19,7 @@ import moe.shizuku.manager.R
 import moe.shizuku.manager.adb.AdbPairingTutorialActivity
 import moe.shizuku.manager.home.AdbDialogFragment
 import moe.shizuku.manager.starter.StarterActivity
+import moe.shizuku.manager.utils.EnvironmentUtils
 import rikka.shizuku.Shizuku
 
 class HomeFragment : Fragment() {
@@ -25,9 +28,12 @@ class HomeFragment : Fragment() {
     private lateinit var originalStatusText: TextView
     private lateinit var wirelessCard: CardView
     private lateinit var rootCard: CardView
-    private lateinit var wirelessBtn: Button
+    private lateinit var pairBtn: Button
+    private lateinit var activateBtn: Button
     private lateinit var rootBtn: Button
     private val ORIGINAL_PKG = "moe.shizuku.privileged.api"
+    private val PINK = Color.parseColor("#FF69B4")
+    private val PINK_DARK = Color.parseColor("#E91E63")
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         val ctx = requireContext()
@@ -36,6 +42,7 @@ class HomeFragment : Fragment() {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
             )
+            setBackgroundColor(Color.parseColor("#FFF0F6"))
         }
         val view = LinearLayout(ctx).apply {
             orientation = LinearLayout.VERTICAL
@@ -56,6 +63,7 @@ class HomeFragment : Fragment() {
         view.addView(statusText)
         view.addView(originalStatusText)
 
+        // 无线调试卡片
         wirelessCard = CardView(ctx).apply {
             radius = 24f
             cardElevation = 4f
@@ -76,13 +84,24 @@ class HomeFragment : Fragment() {
             textSize = 13f
             setPadding(0, 0, 0, 24)
         }.also { wirelessLayout.addView(it) }
-        wirelessBtn = Button(ctx).apply {
-            text = "开始无线调试激活"
-            setOnClickListener { startWirelessAdb() }
-        }.also { wirelessLayout.addView(it) }
+        // 双按钮并排
+        val btnRow = LinearLayout(ctx).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER
+        }
+        pairBtn = createPinkButton(ctx, "配对").apply {
+            setOnClickListener { startPairing() }
+        }
+        activateBtn = createPinkButton(ctx, "激活").apply {
+            setOnClickListener { startWirelessActivate() }
+        }
+        btnRow.addView(pairBtn, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply { marginEnd = 16 })
+        btnRow.addView(activateBtn, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+        wirelessLayout.addView(btnRow)
         wirelessCard.addView(wirelessLayout)
         view.addView(wirelessCard)
 
+        // Root 卡片
         rootCard = CardView(ctx).apply {
             radius = 24f
             cardElevation = 4f
@@ -103,14 +122,27 @@ class HomeFragment : Fragment() {
             textSize = 13f
             setPadding(0, 0, 0, 24)
         }.also { rootLayout.addView(it) }
-        rootBtn = Button(ctx).apply {
-            text = "通过 Root 启动"
+        rootBtn = createPinkButton(ctx, "通过 Root 启动").apply {
             setOnClickListener { startRoot() }
-        }.also { rootLayout.addView(it) }
+        }
+        rootLayout.addView(rootBtn)
         rootCard.addView(rootLayout)
         view.addView(rootCard)
 
         return scroll
+    }
+
+    private fun createPinkButton(ctx: android.content.Context, text: String): Button {
+        return Button(ctx).apply {
+            this.text = text
+            setTextColor(Color.WHITE)
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.RECTANGLE
+                cornerRadius = 100f
+                setColor(PINK)
+            }
+            setPadding(32, 24, 32, 24)
+        }
     }
 
     override fun onResume() {
@@ -122,19 +154,21 @@ class HomeFragment : Fragment() {
         val shizLiteActive = try { Shizuku.pingBinder() } catch (e: Throwable) { false }
         val originalInstalled = isPackageInstalled(ORIGINAL_PKG)
         val originalActive = originalInstalled && isOriginalActive()
+        val adbPort = try { EnvironmentUtils.getAdbTcpPort() } catch (e: Throwable) { -1 }
+        val paired = adbPort > 0
 
         when {
             shizLiteActive -> {
                 statusText.text = "✓ shizLite 服务已激活"
-                statusText.setTextColor(0xFF4A9EFF.toInt())
+                statusText.setTextColor(PINK)
             }
             originalActive -> {
                 statusText.text = "⚠ 原版 Shizuku 已激活"
-                statusText.setTextColor(0xFFFF6B6B.toInt())
+                statusText.setTextColor(Color.parseColor("#FF6B6B"))
             }
             else -> {
                 statusText.text = "未激活，请选择下方方式激活"
-                statusText.setTextColor(0xFF999999.toInt())
+                statusText.setTextColor(Color.parseColor("#999999"))
             }
         }
 
@@ -142,15 +176,38 @@ class HomeFragment : Fragment() {
         originalStatusText.visibility = if (originalInstalled) View.VISIBLE else View.GONE
 
         val disabled = originalActive && !shizLiteActive
-        wirelessBtn.isEnabled = !disabled
-        rootBtn.isEnabled = !disabled
-        wirelessCard.alpha = if (disabled) 0.5f else 1.0f
-        rootCard.alpha = if (disabled) 0.5f else 1.0f
-        wirelessBtn.text = if (disabled) "原版已激活，请勿重复激活" else "开始无线调试激活"
-        rootBtn.text = if (disabled) "原版已激活，请勿重复激活" else "通过 Root 启动"
+
+        // 无线调试双按钮状态
+        if (shizLiteActive) {
+            pairBtn.text = "已配对"
+            pairBtn.isEnabled = false
+            activateBtn.text = "已激活"
+            activateBtn.isEnabled = false
+        } else if (disabled) {
+            pairBtn.text = "原版已激活"
+            pairBtn.isEnabled = false
+            activateBtn.text = "请勿重复"
+            activateBtn.isEnabled = false
+        } else {
+            pairBtn.text = if (paired) "重新配对" else "配对"
+            pairBtn.isEnabled = true
+            activateBtn.text = "激活"
+            activateBtn.isEnabled = paired
+        }
+
+        // Root 按钮状态
+        rootBtn.isEnabled = !disabled && !shizLiteActive
+        rootBtn.text = when {
+            shizLiteActive -> "已激活"
+            disabled -> "原版已激活，请勿重复"
+            else -> "通过 Root 启动"
+        }
+
+        wirelessCard.alpha = if (disabled && !shizLiteActive) 0.5f else 1.0f
+        rootCard.alpha = if (disabled && !shizLiteActive) 0.5f else 1.0f
     }
 
-    private fun startWirelessAdb() {
+    private fun startPairing() {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 AdbDialogFragment().show(parentFragmentManager, "adb_pair")
@@ -159,11 +216,26 @@ class HomeFragment : Fragment() {
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            MaterialAlertDialogBuilder(requireContext())
-                .setTitle("错误")
-                .setMessage("启动无线调试失败：${e.message}")
-                .setPositiveButton(android.R.string.ok, null)
-                .show()
+            showError("配对失败：${e.message}")
+        }
+    }
+
+    private fun startWirelessActivate() {
+        try {
+            val port = EnvironmentUtils.getAdbTcpPort()
+            if (port <= 0) {
+                showError("未检测到无线调试端口，请先完成配对")
+                return
+            }
+            val intent = Intent(requireContext(), StarterActivity::class.java).apply {
+                putExtra(StarterActivity.EXTRA_IS_ROOT, false)
+                putExtra(StarterActivity.EXTRA_HOST, "127.0.0.1")
+                putExtra(StarterActivity.EXTRA_PORT, port)
+            }
+            startActivity(intent)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            showError("激活失败：${e.message}")
         }
     }
 
@@ -175,12 +247,16 @@ class HomeFragment : Fragment() {
             startActivity(intent)
         } catch (e: Exception) {
             e.printStackTrace()
-            MaterialAlertDialogBuilder(requireContext())
-                .setTitle("错误")
-                .setMessage("Root 启动失败：${e.message}")
-                .setPositiveButton(android.R.string.ok, null)
-                .show()
+            showError("Root 启动失败：${e.message}")
         }
+    }
+
+    private fun showError(msg: String) {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("错误")
+            .setMessage(msg)
+            .setPositiveButton(android.R.string.ok, null)
+            .show()
     }
 
     private fun isPackageInstalled(pkg: String): Boolean {
