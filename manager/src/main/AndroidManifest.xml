@@ -197,6 +197,11 @@
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="dataSync" />
+
+        <activity
+            android:name=".adb.AdbPairingActivity"
+            android:theme="@style/Theme.AppCompat.Dialog"
+            android:exported="false" />
     </application>
 
 </manifest>

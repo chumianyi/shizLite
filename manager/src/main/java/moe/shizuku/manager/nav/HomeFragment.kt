@@ -229,11 +229,25 @@ class HomeFragment : Fragment() {
                     return
                 }
             }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                AdbDialogFragment().show(parentFragmentManager, "adb_pair")
-            } else {
-                startActivity(Intent(requireContext(), AdbPairingTutorialActivity::class.java))
+            val ctx = requireContext()
+            val intent = android.content.Intent(ctx, moe.shizuku.manager.adb.AdbPairingActivity::class.java).apply {
+                flags = android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP
             }
+            val pendingIntent = android.app.PendingIntent.getActivity(
+                ctx, 0, intent,
+                android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
+            )
+            val notification = androidx.core.app.NotificationCompat.Builder(ctx, "shizlite_service")
+                .setContentTitle("shizLite 无线调试配对")
+                .setContentText("点击输入配对码完成配对")
+                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setColor(0xFFFF69B4.toInt())
+                .setPriority(androidx.core.app.NotificationCompat.PRIORITY_HIGH)
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true)
+                .build()
+            val nm = ctx.getSystemService(android.content.Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+            nm.notify(2002, notification)
         } catch (e: Exception) {
             e.printStackTrace()
             showError("配对失败：${e.message}")
