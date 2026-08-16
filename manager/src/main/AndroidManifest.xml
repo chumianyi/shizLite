@@ -207,6 +207,10 @@
         <activity
             android:name=".adb.PairingTutorialActivity"
             android:exported="false" />
+
+        <receiver
+            android:name=".adb.FloatingPairingWindow$FloatingPairingReceiver"
+            android:exported="false" />
     </application>
 
 </manifest>

@@ -131,9 +131,8 @@ class PairingTutorialActivity : AppCompatActivity() {
                 return
             }
         }
-        floatingWindow = FloatingPairingWindow(this)
-        floatingWindow?.show()
-        Toast.makeText(this, "悬浮窗已显示，输入配对码完成配对", Toast.LENGTH_SHORT).show()
+        FloatingPairingWindow.sendPairingNotification(this)
+        Toast.makeText(this, "已发送通知，请下拉通知栏开启配对悬浮窗", Toast.LENGTH_LONG).show()
         finish()
     }
 
