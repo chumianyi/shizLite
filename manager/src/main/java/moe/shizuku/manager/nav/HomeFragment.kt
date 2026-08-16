@@ -157,6 +157,15 @@ class HomeFragment : Fragment() {
         val adbPort = try { EnvironmentUtils.getAdbTcpPort() } catch (e: Throwable) { -1 }
         val paired = adbPort > 0
 
+        // 前台服务：激活时启动常驻通知，未激活时停止
+        val ctx = requireContext()
+        val fgIntent = android.content.Intent(ctx, moe.shizuku.manager.ShizLiteForegroundService::class.java)
+        if (shizLiteActive) {
+            try { ctx.startForegroundService(fgIntent) } catch (e: Exception) { e.printStackTrace() }
+        } else {
+            try { ctx.stopService(fgIntent) } catch (e: Exception) { e.printStackTrace() }
+        }
+
         when {
             shizLiteActive -> {
                 statusText.text = "✓ shizLite 服务已激活"
