@@ -1,24 +1,27 @@
 package moe.shizuku.manager.adb
 
 import android.app.NotificationManager
-import android.app.RemoteInput
 import android.content.Context
-import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.Bundle
 import android.view.Gravity
 import android.view.View
-import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
+import androidx.core.app.NotificationCompat
 import androidx.lifecycle.MutableLiveData
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import moe.shizuku.manager.R
+import moe.shizuku.manager.ShizukuSettings
 
 class AdbPairingActivity : AppCompatActivity() {
 
@@ -33,17 +36,15 @@ class AdbPairingActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // 取消配对通知
         val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         nm.cancel(2002)
 
-        val scroll = android.widget.ScrollView(this).apply {
-            setBackgroundColor(Color.parseColor("#80000000"))
-        }
+        val scroll = android.widget.ScrollView(this)
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
             setPadding(48, 0, 48, 0)
+            setBackgroundColor(Color.parseColor("#80000000"))
             setOnClickListener { finish() }
         }
         scroll.addView(root)
@@ -56,11 +57,9 @@ class AdbPairingActivity : AppCompatActivity() {
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             )
-            setOnClickListener { /* 阻止点击穿透 */ }
+            setOnClickListener { }
         }
-        val layout = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-        }
+        val layout = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
 
         TextView(this).apply {
             text = "无线调试配对"
@@ -76,7 +75,6 @@ class AdbPairingActivity : AppCompatActivity() {
             setTextColor(Color.parseColor("#666666"))
         }.also { layout.addView(it) }
 
-        // 配对码输入
         TextView(this).apply {
             text = "配对码"
             textSize = 13f
@@ -88,7 +86,6 @@ class AdbPairingActivity : AppCompatActivity() {
             inputType = android.text.InputType.TYPE_CLASS_NUMBER
             maxLines = 1
             setPadding(32, 24, 32, 24)
-            setBackgroundResource(android.R.color.transparent)
             background = GradientDrawable().apply {
                 shape = GradientDrawable.RECTANGLE
                 cornerRadius = 24f
@@ -97,7 +94,6 @@ class AdbPairingActivity : AppCompatActivity() {
             }
         }.also { layout.addView(it) }
 
-        // 端口输入
         TextView(this).apply {
             text = "端口"
             textSize = 13f
@@ -123,7 +119,6 @@ class AdbPairingActivity : AppCompatActivity() {
             visibility = View.GONE
         }.also { layout.addView(it) }
 
-        // 按钮行
         val btnRow = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER
@@ -158,11 +153,8 @@ class AdbPairingActivity : AppCompatActivity() {
         root.addView(card)
         setContentView(scroll)
 
-        // 启动 mDNS 自动发现端口
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            adbMdns = AdbMdns(this, AdbMdns.TLS_CONNECT) { p ->
-                port.postValue(p)
-            }
+            adbMdns = AdbMdns(this, AdbMdns.TLS_CONNECT) { p -> port.postValue(p) }
             adbMdns.start()
             port.observe(this) { p ->
                 if (p > 0) {
@@ -177,55 +169,51 @@ class AdbPairingActivity : AppCompatActivity() {
         val code = codeInput.text.toString().trim()
         val portStr = portInput.text.toString().trim()
 
-        if (code.isEmpty()) {
-            showStatus("请输入配对码", Color.RED)
-            return
-        }
-        if (portStr.isEmpty()) {
-            showStatus("请输入端口", Color.RED)
-            return
-        }
-
+        if (code.isEmpty()) { showStatus("请输入配对码", Color.RED); return }
+        if (portStr.isEmpty()) { showStatus("请输入端口", Color.RED); return }
         val portNum = portStr.toIntOrNull() ?: -1
-        if (portNum <= 0) {
-            showStatus("端口无效", Color.RED)
-            return
-        }
+        if (portNum <= 0) { showStatus("端口无效", Color.RED); return }
 
         confirmBtn.isEnabled = false
         confirmBtn.text = "配对中..."
+        showStatus("正在配对...", PINK)
 
-        // 通过 AdbPairingService 进行配对
-        try {
-            val intent = AdbPairingService::class.java.let { cls ->
-                Intent(this, cls).apply {
-                    action = "reply"
-                    putExtra("paring_code", portNum)
+        CoroutineScope(Dispatchers.IO).launch {
+            val success = try {
+                val key = AdbKey(PreferenceAdbKeyStore(ShizukuSettings.getPreferences()), "shizuku")
+                val client = AdbPairingClient("127.0.0.1", portNum, code, key)
+                client.start()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                false
+            }
+
+            withContext(Dispatchers.Main) {
+                if (success) {
+                    showStatus("配对成功！可以点击激活了", Color.parseColor("#4CAF50"))
+                    updatePairNotification(true)
+                    android.os.Handler(mainLooper).postDelayed({ finish() }, 1500)
+                } else {
+                    showStatus("配对失败，请检查配对码和端口后重试", Color.RED)
+                    updatePairNotification(false)
+                    confirmBtn.isEnabled = true
+                    confirmBtn.text = "确认配对"
                 }
             }
-            // 构造 RemoteInput 结果
-            val remoteInput = RemoteInput.Builder("paring_code").build()
-            val resultsIntent = Intent()
-            RemoteInput.addResultsToIntent(arrayOf(remoteInput), resultsIntent, Bundle().apply {
-                putCharSequence("paring_code", code)
-            })
-            intent.putExtras(resultsIntent)
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                startForegroundService(intent)
-            } else {
-                startService(intent)
-            }
-
-            showStatus("配对请求已发送，请稍候...", PINK)
-            // 等待片刻后关闭，让服务处理配对
-            android.os.Handler(mainLooper).postDelayed({ finish() }, 2000)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            showStatus("配对失败：${e.message}", Color.RED)
-            confirmBtn.isEnabled = true
-            confirmBtn.text = "确认配对"
         }
+    }
+
+    private fun updatePairNotification(success: Boolean) {
+        val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notification = NotificationCompat.Builder(this, "shizlite_service")
+            .setContentTitle(if (success) "配对成功" else "配对失败")
+            .setContentText(if (success) "可以点击激活了" else "请重试")
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setColor(0xFFFF69B4.toInt())
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+            .build()
+        nm.notify(2002, notification)
     }
 
     private fun showStatus(msg: String, color: Int) {
@@ -236,8 +224,6 @@ class AdbPairingActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        if (::adbMdns.isInitialized) {
-            adbMdns.stop()
-        }
+        if (::adbMdns.isInitialized) adbMdns.stop()
     }
 }

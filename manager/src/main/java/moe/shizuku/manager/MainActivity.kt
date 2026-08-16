@@ -29,12 +29,9 @@ class MainActivity : AppCompatActivity() {
         requestNotificationPermission()
 
         bottomNav = findViewById(R.id.bottom_nav)
-        val toolbar = findViewById<com.google.android.material.appbar.MaterialToolbar>(R.id.toolbar)
-        setSupportActionBar(toolbar)
 
         if (savedInstanceState == null) {
             switchFragment(HomeFragment())
-            toolbar.title = getString(R.string.nav_home)
         }
 
         bottomNav.setOnItemSelectedListener { item ->
@@ -45,7 +42,6 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_settings -> SettingsFragment()
                 else -> HomeFragment()
             }
-            toolbar.title = item.title
             switchFragment(fragment)
             true
         }
@@ -84,9 +80,7 @@ class MainActivity : AppCompatActivity() {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == REQUEST_NOTIFICATION) {
-            if (grantResults.isNotEmpty() && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                // 用户拒绝，不强制，配对时会再次提示
-            }
+            // 用户拒绝，不强制，配对时会再次提示
         }
     }
 
